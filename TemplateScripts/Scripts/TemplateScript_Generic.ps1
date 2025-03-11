@@ -101,7 +101,7 @@ else {
 
 #Start custom transcript
 $currentScriptName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
-Start-CustomTranscript -scriptName $currentScriptName
+Start-ScriptTranscript -scriptName $currentScriptName
 
 try {
 ####################################################################################
@@ -110,11 +110,11 @@ try {
 
 <#Example of Write-ToLog (Write-Host information with custom markup)
 
-Write-ToLog "Write-ToLog - Regular Test."
-Write-ToLog -info "Write-ToLog - Info Test."
-Write-ToLog -warning "Write-ToLog - Warning Test."
-Write-ToLog -failure "Write-ToLog - Failure Test."
-Write-ToLog -success "Write-ToLog - Success Test."
+Write-ToLog "Regular Test."
+Write-ToLog -info "Info Test."
+Write-ToLog -warning "Warning Test."
+Write-ToLog -failure "Failure Test."
+Write-ToLog -success "Success Test."
 #>
 
 ####################################################################################

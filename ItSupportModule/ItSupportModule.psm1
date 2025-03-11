@@ -1,21 +1,29 @@
-﻿##################################################################################################
-# Function to start a transcript with custom naming and path parameters
-##################################################################################################
-function Start-CustomTranscript {
+﻿############################################################################################################
+# Function to start a transcript with custom naming and path parameters (for scripts)
+############################################################################################################
+function Start-ScriptTranscript {
 
     param (
         [string]$scriptName
     )
 
-    #Check whether the script is running in admin or user context
+    # Check whether the script is running in admin, user, or SYSTEM context
     $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $windowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity)
     $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 
-    #Define custom scriptlog folder based on admin or user context and set scriptLogFolder accordingly
-    if ($windowsPrincipal.IsInRole($adminRole)) {
+    # Check if the current user is SYSTEM
+    $isSystem = $windowsIdentity.Name -eq "NT AUTHORITY\SYSTEM"
+
+    # Define custom scriptlog folder based on admin, user, or SYSTEM context and set scriptLogFolder accordingly
+    if ($isSystem) {
+        # Running as SYSTEM account
+        $scriptLogFolder = "$env:ProgramData\MWP\ScriptLogs\$scriptName"
+    } elseif ($windowsPrincipal.IsInRole($adminRole)) {
+        # Running as an administrator
         $scriptLogFolder = "$env:ProgramData\MWP\ScriptLogs\$scriptName"
     } else {
+        # Running as a regular user
         $scriptLogFolder = "$env:LOCALAPPDATA\MWP\ScriptLogs\$scriptName"
     }
     
@@ -40,9 +48,9 @@ function Start-CustomTranscript {
     }
 }
 
-##################################################################################################
-# Function to stop the custom transcript with a success message and exit code
-##################################################################################################
+############################################################################################################
+# Function to stop the custom transcript with a success message and exit code (for scripts)
+############################################################################################################
 function Stop-CustomTranscriptSuccess {
     Write-ToLog -success "Everything seems in order, script ran without any noticable issues."
     Write-Host "Exiting script.."
@@ -51,9 +59,9 @@ function Stop-CustomTranscriptSuccess {
     Exit 0
 }
 
-##################################################################################################
-# Function to stop the custom transcript with an error message and exit code
-##################################################################################################
+############################################################################################################
+# Function to stop the custom transcript with an error message and exit code (for scripts)
+############################################################################################################
 function Stop-CustomTranscriptError {
     Write-ToLog -failure "Something went wrong. Check the logs for further details or manually check the results on the device!"
     Write-Host "Exiting script.."
@@ -62,9 +70,9 @@ function Stop-CustomTranscriptError {
     Exit 1
 }
 
-##################################################################################################
+############################################################################################################
 # Function to write messages to host with custom formatting
-##################################################################################################
+############################################################################################################
 function Write-ToLog {
 
     param (
@@ -93,12 +101,62 @@ function Write-ToLog {
     } 
 }
 
+############################################################################################################
+# Function to start a transcript with custom naming and path parameters (for .MSI installations)
+############################################################################################################
+function Start-MsiTranscript {
 
+    param (
+        [string]$scriptName
+    )
 
+    # Check whether the script is running in admin, user, or SYSTEM context
+    $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $windowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity)
+    $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
 
+    # Check if the current user is SYSTEM
+    $isSystem = $windowsIdentity.Name -eq "NT AUTHORITY\SYSTEM"
 
+    # Define custom scriptlog folder based on admin, user, or SYSTEM context and set scriptLogFolder accordingly
+    if ($isSystem) {
+        # Running as SYSTEM account
+        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$scriptName"
+    } elseif ($windowsPrincipal.IsInRole($adminRole)) {
+        # Running as an administrator
+        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$scriptName"
+    } else {
+        # Running as a regular user
+        $installLogFolder = "$env:LOCALAPPDATA\MWP\InstallLogs\$scriptName"
+    }
+    
+    #Create logfolder if it doesn't exist yet
+    $installLogPathCreated = $false
+    if (!(Test-Path $installLogFolder)) {
+        New-Item -ItemType Directory -Path $installLogFolder -Force | Out-Null
+        $installLogPathCreated = $true
+    }
 
+    #Define variables used in the custom transcript
+    $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
+    $logName = $scriptName + "_$dateStamp"
+    $fullLogPath = Join-Path -Path $scriptLogFolder -ChildPath "$logname.log"
 
+    #Start the custom named transcript
+    Start-Transcript -Path "$fullLogPath" -Force -ErrorAction SilentlyContinue
+
+    # Write log for creating log folder when it was just created.
+    if ($installLogPathCreated) {
+        Write-ToLog -info "Created logfolder $installLogFolder before starting the transcript because it did not exist yet."
+    }
+}
+
+##################################################################################################
+# Function to install MSI and MST files
+##################################################################################################
+function Start-MsiInstall {
+
+}
 
 
 
@@ -106,4 +164,4 @@ function Write-ToLog {
 
 
 #Export the functions so they are available when the module is imported
-Export-ModuleMember -Function Start-CustomTranscript, Stop-CustomTranscriptSuccess, Stop-CustomTranscriptError, Write-ToLog
+Export-ModuleMember -Function Start-ScriptTranscript, Stop-CustomTranscriptSuccess, Stop-CustomTranscriptError, Write-ToLog, Start-MsiTranscript, Start-MsiInstall

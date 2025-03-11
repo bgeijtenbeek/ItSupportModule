@@ -20,7 +20,7 @@
     Description = 'A utility module with useful functions for desktop file management'
 
     # Functions to export from this module
-    FunctionsToExport = @('Start-CustomTranscript', 'Stop-CustomTranscriptSuccess', 'Stop-CustomTranscriptError', 'Write-ToLog')
+    FunctionsToExport = @('Start-ScriptTranscript', 'Stop-CustomTranscriptSuccess', 'Stop-CustomTranscriptError', 'Write-ToLog', 'Start-MsiTranscript', 'Start-MsiInstall')
 
     # Cmdlets to export (if using binary modules, leave blank for now)
     CmdletsToExport = @()

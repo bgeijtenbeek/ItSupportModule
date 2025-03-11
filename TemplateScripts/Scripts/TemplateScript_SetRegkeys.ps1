@@ -101,7 +101,7 @@ else {
 
 #Start custom transcript
 $currentScriptName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
-Start-CustomTranscript -scriptName $currentScriptName
+Start-ScriptTranscript -scriptName $currentScriptName
 
 try {
 ####################################################################################
