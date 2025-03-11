@@ -124,6 +124,7 @@ else {
 $resultStartTranscript = Start-MsiTranscript -appName $appName -runningContext $runningContext
 $dateStamp = $resultStartTranscript.dateStamp
 $installLogFolder = $resultStartTranscript.installLogFolder
+$scriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 try {
 ####################################################################################
@@ -136,7 +137,7 @@ try {
 
     ########### INSTALLATION PHASE (DO NOT CHANGE) ###########
     
-    Start-MsiInstall -appName $appName -dateStamp $dateStamp -installLogFolder $installLogFolder -msiFileName $msiFileName -customArguments $customArguments
+    Start-MsiInstall -appName $appName -dateStamp $dateStamp -installLogFolder $installLogFolder -msiFileName $msiFileName -customArguments $customArguments -scriptPath $scriptPath
 
 
 

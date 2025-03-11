@@ -153,7 +153,8 @@ function Start-MsiInstall {
         [string]$dateStamp,
         [string]$msiFileName,
         [string]$installLogFolder,
-        [string]$customArguments 
+        [string]$customArguments,
+        [string]$scriptPath
     )
 
     $logMSI = "_inst_MSI_$dateStamp"
@@ -166,7 +167,6 @@ function Start-MsiInstall {
 
     try{
         #Determine the script's current location (where the MSI resides)
-        $scriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
         $msiPath = Join-Path -Path $scriptPath -ChildPath "$msiFileName"
         $defaultArguments = "/i `"$msiPath`" /qn /norestart /L*V `"$fullMsiLogPath`""
         if ($customArguments) {
