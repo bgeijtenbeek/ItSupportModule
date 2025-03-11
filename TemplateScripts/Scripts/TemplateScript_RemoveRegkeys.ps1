@@ -1,4 +1,4 @@
-﻿#Standardized script template
+﻿#Standardized script template - Remove Regkeys
 #Created by Bastiaan Geijtenbeek
 #Created on 11-MARCH-2025
 
@@ -108,13 +108,70 @@ try {
 # ↓ ADD YOUR CUSTOM SCRIPT HERE ↓
 ####################################################################################
 
-<#Example of Write-ToLog (Write-Host information with custom markup)
+#Define registry path
+$registryPathMachine = "HKLM:\SOFTWARE\Your\Custom\Key"
 
-Write-ToLog "Write-ToLog - Regular Test."
-Write-ToLog -info "Write-ToLog - Info Test."
-Write-ToLog -warning "Write-ToLog - Warning Test."
-Write-ToLog -failure "Write-ToLog - Failure Test."
-Write-ToLog -success "Write-ToLog - Success Test."
+#Define registry entries as an array of hashtables
+$registryEntriesMachine = @(
+    @{ Name = "Example01"},
+    @{ Name = "Example02"},
+    @{ Name = "Example03"},
+    @{ Name = "Example04"},
+    @{ Name = "Example05"},
+    @{ Name = "Example06"}
+)
+
+#Check if the registry path exists, if not, nothing to remove.
+if (-not (Test-Path $registryPathMachine)) {
+    Write-ToLog "Registry key $registryPathMachine was not found. Nothing to remove."
+    Stop-CustomTranscriptSuccess
+}
+
+#Iterate through entries and remove the properties
+foreach ($entry in $registryEntriesMachine) {
+    $name = $entry.Name
+
+    if (Get-ItemProperty -Path $registryPathMachine -Name $name -ErrorAction SilentlyContinue) {
+        Remove-ItemProperty -Path $registryPathMachine -Name $name -Force
+        Write-ToLog -success "Successfully removed property $name from key $registryPathMachine"
+    } else {
+        Write-ToLog -info "Property $name does not exist in key $registryPathMachine"
+    }
+}
+
+<# OR WHEN RUNNING IN USER CONTEXT TO SET HKCU VALUES
+
+#Define registry path
+$registryPathUser = "HKCU:\SOFTWARE\Your\Custom\Key"
+
+#Define registry entries as an array of hashtables
+$registryEntriesUser = @(
+    @{ Name = "Example01"},
+    @{ Name = "Example02"},
+    @{ Name = "Example03"},
+    @{ Name = "Example04"},
+    @{ Name = "Example05"},
+    @{ Name = "Example06"}
+)
+
+#Check if the registry path exists, if not, nothing to remove.
+if (-not (Test-Path $registryPathUser)) {
+    Write-ToLog "Registry key $registryPathUser was not found. Nothing to remove."
+    Stop-CustomTranscriptSuccess
+}
+
+#Iterate through entries and remove the properties
+foreach ($entry in $registryEntriesUser) {
+    $name = $entry.Name
+
+    if (Get-ItemProperty -Path $registryPathUser -Name $name -ErrorAction SilentlyContinue) {
+        Remove-ItemProperty -Path $registryPathUser -Name $name -Force
+        Write-ToLog -success "Successfully removed property $name from key $registryPathUser"
+    } else {
+        Write-ToLog -info "Property $name does not exist in key $registryPathUser"
+    }
+}
+
 #>
 
 ####################################################################################
