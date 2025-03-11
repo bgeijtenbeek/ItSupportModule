@@ -1,4 +1,4 @@
-﻿# Module manifest for module 'MyUtilities'
+﻿# Module manifest for module 'ItSupportModule'
 
 @{
     # Script module or binary module file associated with this manifest
