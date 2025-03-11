@@ -101,7 +101,6 @@ function Start-MsiTranscript {
 
     param (
         [string]$appName,
-        [string]$dateStamp,
         [string]$runningContext
     )
 
@@ -125,6 +124,7 @@ function Start-MsiTranscript {
     }
 
     #Define variables used in the custom transcripts
+    $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
     $logName = $appName + "_inst_$dateStamp"
     $fullLogPath = Join-Path -Path $installLogFolder -ChildPath "$logname.log"
 
@@ -135,18 +135,57 @@ function Start-MsiTranscript {
     if ($installLogPathCreated) {
         Write-ToLog -info "Created logfolder $installLogFolder before starting the transcript because it did not exist yet."
     }
+
+    #Return the $installLogFolder value that we have set here to the main script.
+    return [PSCustomObject]@{
+        installLogFolder = $installLogFolder
+        dateStamp = $dateStamp
+    }
 }
 
 ##################################################################################################
 # Function to install MSI and MST files
 ##################################################################################################
 function Start-MsiInstall {
+    param (
+        [string]$appName,
+        [string]$appVersion,
+        [string]$dateStamp,
+        [string]$msiFileName,
+        [string]$installLogFolder,
+        [string]$customArguments 
+    )
 
+    $logMSI = "_inst_MSI_$dateStamp"
+    $logNameMSI = $appName + $logMSI
+    $fullMsiLogPath = Join-Path -Path $installLogFolder -ChildPath "$logNameMSI.log"
+
+    Write-ToLog "##############################################################"
+    Write-ToLog "Installing $appName application version $appVersion." 
+    Write-ToLog "##############################################################"
+
+    try{
+        #Determine the script's current location (where the MSI resides)
+        $scriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+        $msiPath = Join-Path -Path $scriptPath -ChildPath "$msiFileName"
+        $defaultArguments = "/i `"$msiPath`" /qn /norestart /L*V `"$fullMsiLogPath`""
+        if ($customArguments) {
+            $arguments = $defaultArguments + " " + $customArguments
+        }
+        else {
+            $arguments = $defaultArguments
+        }
+
+        # Start installation from .MSI
+        Write-ToLog "Starting MSI installation. For details on that, check seperate log at $fullMsiLogPath."
+        Start-Process "msiexec.exe" -ArgumentList $arguments -Wait -NoNewWindow
+        Write-ToLog -success "Installation has completed."
+    }
+    catch {
+        #Error when something happens
+        Write-ToLog -failure "An error occurred: $_"
+    }
 }
-
-
-
-
 
 
 #Export the functions so they are available when the module is imported

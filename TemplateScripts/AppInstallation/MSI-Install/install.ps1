@@ -7,9 +7,14 @@
 ##############################################################################################
 
 #Friendly app name, used for logging purposes. Single word. For example: FortiClientVPN, StorageExplorer, VlcMediaPlayer
-$appName = "yourAppName"
+$appName = "7Zip"
 #Version of the app you are installing, used for logging purposes only.
-$appVersion = "xx.xx.xx"
+$appVersion = "24.09"
+#the .msi filename that you want to install (yourapp.msi)
+$msiFileName = "7z2409-x64.msi"
+#extra arguments on top of the default "/i yourapp.msi /qn /norestart /L*V `"$fullMsiLogPath`"" arguments. If no other arguments are required, leave blank.
+$customArguments = ""
+
 
 ####################################################################################
 # ↓ DO NOT CHANGE - CHECK FOR AND INSTALLATION/UPDATE OF REQUIRED MODULE ↓
@@ -115,10 +120,10 @@ else {
 ####################################################################################
 # ↓ DO NOT CHANGE - START CUSTOM TRANSCRIPT FOR THIS SCRIPT ↓
 ####################################################################################
-$dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
-Start-MsiTranscript -appName $appName -dateStamp $dateStamp -runningContext $runningContext
 
-
+$resultStartTranscript = Start-MsiTranscript -appName $appName -runningContext $runningContext
+$dateStamp = $resultStartTranscript.dateStamp
+$installLogFolder = $resultStartTranscript.installLogFolder
 
 try {
 ####################################################################################
@@ -131,7 +136,7 @@ try {
 
     ########### INSTALLATION PHASE (DO NOT CHANGE) ###########
     
-    Write-Host "Testrun log entry"
+    Start-MsiInstall -appName $appName -dateStamp $dateStamp -installLogFolder $installLogFolder -msiFileName $msiFileName -customArguments $customArguments
 
 
 
