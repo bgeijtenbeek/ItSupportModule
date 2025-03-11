@@ -25,20 +25,24 @@ function Test-IsAdmin {
 #Determine where to install the module
 if (Test-IsSystem) {
     #Running as SYSTEM (Intune or SCCM deployment)
-    Write-Host "Running as SYSTEM. Installing module system-wide..."
+    Write-Host "Running as SYSTEM. Using system-wide module."
     $ModulePath = "$env:ProgramFiles\PowerShell\Modules\$ModuleName"
+    $runningContext = "System"
 } elseif (Test-IsAdmin) {
     #Running as Administrator
-    Write-Host "Running as Administrator. Installing module system-wide..."
+    Write-Host "Running as Administrator. Using system-wide module."
     if ($PSVersionTable.PSEdition -eq "Core") {
         $ModulePath = "$env:ProgramFiles\PowerShell\Modules\$ModuleName"
+        $runningContext = "Admin"
     } else {
         $ModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules\$ModuleName"
+        $runningContext = "Admin"
     }
 } else {
     #Running as a regular user, set module installpath to user
-    Write-Host "Running as regular user. Installing module to user profile..."
+    Write-Host "Running as regular user. Using user-installed module."
     $ModulePath = "$env:USERPROFILE\Documents\PowerShell\Modules\$ModuleName"
+    $runningContext = "User"
 }
 
 #Function to get the installed module version
@@ -75,6 +79,7 @@ function Install-ModuleFromGitHub {
 }
 
 #Main Logic
+Write-Host "Looking for $ModuleName module.." 
 $CurrentVersion = Get-InstalledModuleVersion
 $LatestVersion = Get-LatestGitHubVersion
 
@@ -82,97 +87,98 @@ Write-Host "Installed version: $CurrentVersion"
 Write-Host "Latest available version: $LatestVersion"
 
 if (-not $CurrentVersion -or $CurrentVersion -ne $LatestVersion) {
-    Write-Host "Installing/Updating module to latest version..."
+    Write-Host "Installing/Updating module $ModuleName to latest version..."
     Install-ModuleFromGitHub
 } else {
-    Write-Host "Module is already up to date."
+    Write-Host "Module $ModuleName is already up to date."
 }
 
 #Import the module for immediate use
 Import-Module $ModuleName -Force
 
 if (Get-Module -Name $ModuleName) {
-    Write-Host "Module has been imported."
+    Write-Host "Module $ModuleName has been imported."
 }
 else {
-    Write-Host "Module has not been imported. Cannot continue."
+    Write-Host "Module $ModuleName has not been imported. Cannot continue."
     Exit 1
 }
 
 #Start custom transcript
 $currentScriptName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
-Start-ScriptTranscript -scriptName $currentScriptName
+$dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
+Start-ScriptTranscript -scriptName $currentScriptName -runningContext $runningContext -dateStamp $dateStamp
 
 try {
 ####################################################################################
 # ↓ ADD YOUR CUSTOM SCRIPT HERE ↓
 ####################################################################################
 
-#Define registry path
-$registryPathMachine = "HKLM:\SOFTWARE\Your\Custom\Key"
+    #Define registry path
+    $registryPathMachine = "HKLM:\SOFTWARE\Your\Custom\Key"
 
-#Define registry entries as an array of hashtables
-$registryEntriesMachine = @(
-    @{ Name = "Example01"},
-    @{ Name = "Example02"},
-    @{ Name = "Example03"},
-    @{ Name = "Example04"},
-    @{ Name = "Example05"},
-    @{ Name = "Example06"}
-)
+    #Define registry entries as an array of hashtables
+    $registryEntriesMachine = @(
+        @{ Name = "Example01"},
+        @{ Name = "Example02"},
+        @{ Name = "Example03"},
+        @{ Name = "Example04"},
+        @{ Name = "Example05"},
+        @{ Name = "Example06"}
+    )
 
-#Check if the registry path exists, if not, nothing to remove.
-if (-not (Test-Path $registryPathMachine)) {
-    Write-ToLog "Registry key $registryPathMachine was not found. Nothing to remove."
-    Stop-CustomTranscriptSuccess
-}
-
-#Iterate through entries and remove the properties
-foreach ($entry in $registryEntriesMachine) {
-    $name = $entry.Name
-
-    if (Get-ItemProperty -Path $registryPathMachine -Name $name -ErrorAction SilentlyContinue) {
-        Remove-ItemProperty -Path $registryPathMachine -Name $name -Force
-        Write-ToLog -success "Successfully removed property $name from key $registryPathMachine"
-    } else {
-        Write-ToLog -info "Property $name does not exist in key $registryPathMachine"
+    #Check if the registry path exists, if not, nothing to remove.
+    if (-not (Test-Path $registryPathMachine)) {
+        Write-ToLog "Registry key $registryPathMachine was not found. Nothing to remove."
+        Stop-CustomTranscriptSuccess
     }
-}
 
-<# OR WHEN RUNNING IN USER CONTEXT TO SET HKCU VALUES
+    #Iterate through entries and remove the properties
+    foreach ($entry in $registryEntriesMachine) {
+        $name = $entry.Name
 
-#Define registry path
-$registryPathUser = "HKCU:\SOFTWARE\Your\Custom\Key"
-
-#Define registry entries as an array of hashtables
-$registryEntriesUser = @(
-    @{ Name = "Example01"},
-    @{ Name = "Example02"},
-    @{ Name = "Example03"},
-    @{ Name = "Example04"},
-    @{ Name = "Example05"},
-    @{ Name = "Example06"}
-)
-
-#Check if the registry path exists, if not, nothing to remove.
-if (-not (Test-Path $registryPathUser)) {
-    Write-ToLog "Registry key $registryPathUser was not found. Nothing to remove."
-    Stop-CustomTranscriptSuccess
-}
-
-#Iterate through entries and remove the properties
-foreach ($entry in $registryEntriesUser) {
-    $name = $entry.Name
-
-    if (Get-ItemProperty -Path $registryPathUser -Name $name -ErrorAction SilentlyContinue) {
-        Remove-ItemProperty -Path $registryPathUser -Name $name -Force
-        Write-ToLog -success "Successfully removed property $name from key $registryPathUser"
-    } else {
-        Write-ToLog -info "Property $name does not exist in key $registryPathUser"
+        if (Get-ItemProperty -Path $registryPathMachine -Name $name -ErrorAction SilentlyContinue) {
+            Remove-ItemProperty -Path $registryPathMachine -Name $name -Force
+            Write-ToLog -success "Successfully removed property $name from key $registryPathMachine"
+        } else {
+            Write-ToLog -info "Property $name does not exist in key $registryPathMachine"
+        }
     }
-}
 
-#>
+    <# OR WHEN RUNNING IN USER CONTEXT TO SET HKCU VALUES
+
+    #Define registry path
+    $registryPathUser = "HKCU:\SOFTWARE\Your\Custom\Key"
+
+    #Define registry entries as an array of hashtables
+    $registryEntriesUser = @(
+        @{ Name = "Example01"},
+        @{ Name = "Example02"},
+        @{ Name = "Example03"},
+        @{ Name = "Example04"},
+        @{ Name = "Example05"},
+        @{ Name = "Example06"}
+    )
+
+    #Check if the registry path exists, if not, nothing to remove.
+    if (-not (Test-Path $registryPathUser)) {
+        Write-ToLog "Registry key $registryPathUser was not found. Nothing to remove."
+        Stop-CustomTranscriptSuccess
+    }
+
+    #Iterate through entries and remove the properties
+    foreach ($entry in $registryEntriesUser) {
+        $name = $entry.Name
+
+        if (Get-ItemProperty -Path $registryPathUser -Name $name -ErrorAction SilentlyContinue) {
+            Remove-ItemProperty -Path $registryPathUser -Name $name -Force
+            Write-ToLog -success "Successfully removed property $name from key $registryPathUser"
+        } else {
+            Write-ToLog -info "Property $name does not exist in key $registryPathUser"
+        }
+    }
+
+    #>
 
 ####################################################################################
 # ↑ END OF YOUR CUSTOM SCRIPT ↑

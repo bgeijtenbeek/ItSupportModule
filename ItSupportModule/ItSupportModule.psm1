@@ -4,22 +4,16 @@
 function Start-ScriptTranscript {
 
     param (
-        [string]$scriptName
+        [string]$scriptName,
+        [string]$runningContext,
+        [string]$dateStamp
     )
 
-    # Check whether the script is running in admin, user, or SYSTEM context
-    $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-    $windowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity)
-    $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
-
-    # Check if the current user is SYSTEM
-    $isSystem = $windowsIdentity.Name -eq "NT AUTHORITY\SYSTEM"
-
     # Define custom scriptlog folder based on admin, user, or SYSTEM context and set scriptLogFolder accordingly
-    if ($isSystem) {
+    if ($runningContext -eq "System") {
         # Running as SYSTEM account
         $scriptLogFolder = "$env:ProgramData\MWP\ScriptLogs\$scriptName"
-    } elseif ($windowsPrincipal.IsInRole($adminRole)) {
+    } elseif ($runningContext -eq "Admin") {
         # Running as an administrator
         $scriptLogFolder = "$env:ProgramData\MWP\ScriptLogs\$scriptName"
     } else {
@@ -35,7 +29,6 @@ function Start-ScriptTranscript {
     }
 
     #Define variables used in the custom transcript
-    $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
     $logName = $scriptName + "_$dateStamp"
     $fullLogPath = Join-Path -Path $scriptLogFolder -ChildPath "$logname.log"
 
@@ -107,27 +100,21 @@ function Write-ToLog {
 function Start-MsiTranscript {
 
     param (
-        [string]$scriptName
+        [string]$appName,
+        [string]$dateStamp,
+        [string]$runningContext
     )
 
-    # Check whether the script is running in admin, user, or SYSTEM context
-    $windowsIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-    $windowsPrincipal = New-Object System.Security.Principal.WindowsPrincipal($windowsIdentity)
-    $adminRole = [System.Security.Principal.WindowsBuiltInRole]::Administrator
-
-    # Check if the current user is SYSTEM
-    $isSystem = $windowsIdentity.Name -eq "NT AUTHORITY\SYSTEM"
-
-    # Define custom scriptlog folder based on admin, user, or SYSTEM context and set scriptLogFolder accordingly
-    if ($isSystem) {
+    # Define custom scriptlog folder based on admin, user, or SYSTEM context and set installLogFolder accordingly
+    if ($runningContext -eq "System") {
         # Running as SYSTEM account
-        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$scriptName"
-    } elseif ($windowsPrincipal.IsInRole($adminRole)) {
+        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$appName"
+    } elseif ($runningContext -eq "Admin") {
         # Running as an administrator
-        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$scriptName"
+        $installLogFolder = "$env:ProgramData\MWP\InstallLogs\$appName"
     } else {
         # Running as a regular user
-        $installLogFolder = "$env:LOCALAPPDATA\MWP\InstallLogs\$scriptName"
+        $installLogFolder = "$env:LOCALAPPDATA\MWP\InstallLogs\$appName"
     }
     
     #Create logfolder if it doesn't exist yet
@@ -137,10 +124,9 @@ function Start-MsiTranscript {
         $installLogPathCreated = $true
     }
 
-    #Define variables used in the custom transcript
-    $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
-    $logName = $scriptName + "_$dateStamp"
-    $fullLogPath = Join-Path -Path $scriptLogFolder -ChildPath "$logname.log"
+    #Define variables used in the custom transcripts
+    $logName = $appName + "_inst_$dateStamp"
+    $fullLogPath = Join-Path -Path $installLogFolder -ChildPath "$logname.log"
 
     #Start the custom named transcript
     Start-Transcript -Path "$fullLogPath" -Force -ErrorAction SilentlyContinue

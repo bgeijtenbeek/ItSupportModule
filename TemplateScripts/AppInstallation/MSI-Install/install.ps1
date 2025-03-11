@@ -2,10 +2,18 @@
 #Created by Bastiaan Geijtenbeek
 #Created on 11-MARCH-2025
 
-####################################################################################
-# ↓ DO NOT CHANGE THINGS IN THIS AREA. IT IS PART OF THE STANDARDIZED SCRIPT ↓
-####################################################################################
+##############################################################################################
+# ↓ DECLARE VARIABLES REQUIRED FOR THIS SCRIPT. NEEDS TO BE MODIFIED FOR EVERY INSTALLATION ↓
+##############################################################################################
 
+#Friendly app name, used for logging purposes. Single word. For example: FortiClientVPN, StorageExplorer, VlcMediaPlayer
+$appName = "yourAppName"
+#Version of the app you are installing, used for logging purposes only.
+$appVersion = "xx.xx.xx"
+
+####################################################################################
+# ↓ DO NOT CHANGE - CHECK FOR AND INSTALLATION/UPDATE OF REQUIRED MODULE ↓
+####################################################################################
 $ModuleName = "ItSupportModule"
 $GitHubRepo = "https://raw.githubusercontent.com/bgeijtenbeek/$ModuleName/main"
 $ReleaseZip = "https://github.com/bgeijtenbeek/$ModuleName/releases/latest/download/$ModuleName.zip"
@@ -104,29 +112,35 @@ else {
     Exit 1
 }
 
-#Start custom transcript
-$currentScriptName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
+####################################################################################
+# ↓ DO NOT CHANGE - START CUSTOM TRANSCRIPT FOR THIS SCRIPT ↓
+####################################################################################
 $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
-Start-ScriptTranscript -scriptName $currentScriptName -runningContext $runningContext -dateStamp $dateStamp
+Start-MsiTranscript -appName $appName -dateStamp $dateStamp -runningContext $runningContext
+
+
 
 try {
 ####################################################################################
 # ↓ ADD YOUR CUSTOM SCRIPT HERE ↓
 ####################################################################################
 
-    <#Example of Write-ToLog (Write-Host information with custom markup)
+    ########### PRE-INSTALLATION PHASE ###########
 
-    Write-ToLog "Regular Test."
-    Write-ToLog -info "Info Test."
-    Write-ToLog -warning "Warning Test."
-    Write-ToLog -failure "Failure Test."
-    Write-ToLog -success "Success Test."
-    #>
+
+
+    ########### INSTALLATION PHASE (DO NOT CHANGE) ###########
+    
+    Write-Host "Testrun log entry"
+
+
+
+    ########### POST-INSTALLATION PHASE ###########
+
+    
 
 ####################################################################################
-# ↑ END OF YOUR CUSTOM SCRIPT ↑
-####################################################################################
-# ↓ DO NOT CHANGE THINGS AFTER THIS LINE. IT IS PART OF THE STANDARDIZED SCRIPT ↓
+# ↓ DO NOT CHANGE - CATCH OUTCOME AND END CUSTOM TRANSCRIPT FOR THIS SCRIPT ↓
 ####################################################################################
 }
 catch {
