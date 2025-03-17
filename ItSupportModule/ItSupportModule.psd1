@@ -5,7 +5,7 @@
     RootModule = 'ItSupportModule.psm1'
 
     # Version number of this module
-    ModuleVersion = '0.0.5'
+    ModuleVersion = '0.0.6'
 
     # Supported PowerShell version
     PowerShellVersion = '5.1'
@@ -20,7 +20,7 @@
     Description = 'A utility module with useful functions for desktop file management'
 
     # Functions to export from this module
-    FunctionsToExport = @('Start-ScriptTranscript', 'Stop-CustomTranscriptSuccess', 'Stop-CustomTranscriptError', 'Write-ToLog', 'Start-MsiTranscript', 'Start-MsiInstall')
+    FunctionsToExport = @('Start-ScriptTranscript', 'Stop-CustomTranscriptSuccess', 'Stop-CustomTranscriptError', 'Write-ToLog', 'Start-MsiTranscript', 'Start-InstallMsi', 'Start-UninstallMsiGUID')
 
     # Cmdlets to export (if using binary modules, leave blank for now)
     CmdletsToExport = @()

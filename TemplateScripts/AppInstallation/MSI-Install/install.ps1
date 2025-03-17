@@ -137,7 +137,7 @@ try {
 
     ########### INSTALLATION PHASE (DO NOT CHANGE) ###########
     
-    Start-MsiInstall -appName $appName -dateStamp $dateStamp -installLogFolder $installLogFolder -msiFileName $msiFileName -customArguments $customArguments -scriptPath $scriptPath
+    Start-InstallMsi -appName $appName -appVersion $appVersion -dateStamp $dateStamp -installLogFolder $installLogFolder -msiFileName $msiFileName -customArguments $customArguments -scriptPath $scriptPath
 
 
 

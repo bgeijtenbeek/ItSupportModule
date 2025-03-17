@@ -101,7 +101,8 @@ function Start-MsiTranscript {
 
     param (
         [string]$appName,
-        [string]$runningContext
+        [string]$runningContext,
+        [switch]$uninstall
     )
 
     # Define custom scriptlog folder based on admin, user, or SYSTEM context and set installLogFolder accordingly
@@ -125,6 +126,12 @@ function Start-MsiTranscript {
 
     #Define variables used in the custom transcripts
     $dateStamp = Get-Date -Format "yyyyMMdd_HHmm"
+    if($uninstall.IsPresent) {
+    $logName = $appName + "_uninst_$dateStamp"        
+    }
+    else{
+      $logName = $appName + "_inst_$dateStamp"  
+    }
     $logName = $appName + "_inst_$dateStamp"
     $fullLogPath = Join-Path -Path $installLogFolder -ChildPath "$logname.log"
 
@@ -146,7 +153,7 @@ function Start-MsiTranscript {
 ##################################################################################################
 # Function to install MSI and MST files
 ##################################################################################################
-function Start-MsiInstall {
+function Start-InstallMsi {
     param (
         [string]$appName,
         [string]$appVersion,
@@ -184,9 +191,56 @@ function Start-MsiInstall {
     catch {
         #Error when something happens
         Write-ToLog -failure "An error occurred: $_"
+        Stop-CustomTranscriptError
+    }
+}
+
+##################################################################################################
+# Function to uninstall MSI by help of the GUID
+##################################################################################################
+function Start-UninstallMsiGUID {
+    param (
+        [string]$appName,
+        [string]$appVersion,
+        [string]$dateStamp,
+        [string]$msiFileName,
+        [string]$installLogFolder,
+        [string]$customArguments,
+        [string]$scriptPath
+    )
+
+    $logMSI = "_uninst_MSI_$dateStamp"
+    $logNameMSI = $appName + $logMSI
+    $fullMsiLogPath = Join-Path -Path $installLogFolder -ChildPath "$logNameMSI.log"
+
+    Write-ToLog "##############################################################"
+    Write-ToLog "Installing $appName application version $appVersion." 
+    Write-ToLog "##############################################################"
+
+    try{
+        #Determine the script's current location (where the MSI resides)
+        $msiPath = Join-Path -Path $scriptPath -ChildPath "$msiFileName"
+        $defaultArguments = "/i `"$msiPath`" /qn /norestart /L*V `"$fullMsiLogPath`""
+        if ($customArguments) {
+            $arguments = $defaultArguments + " " + $customArguments
+        }
+        else {
+            $arguments = $defaultArguments
+        }
+
+        # Start installation from .MSI
+        Write-ToLog "Starting MSI installation. For details on that, check seperate log at $fullMsiLogPath."
+        Start-Process "msiexec.exe" -ArgumentList $arguments -Wait -NoNewWindow
+        Write-ToLog -success "Installation has completed."
+    }
+    catch {
+        #Error when something happens
+        Write-ToLog -failure "An error occurred: $_"
+        Stop-CustomTranscriptError
     }
 }
 
 
+
 #Export the functions so they are available when the module is imported
-Export-ModuleMember -Function Start-ScriptTranscript, Stop-CustomTranscriptSuccess, Stop-CustomTranscriptError, Write-ToLog, Start-MsiTranscript, Start-MsiInstall
+Export-ModuleMember -Function Start-ScriptTranscript, Stop-CustomTranscriptSuccess, Stop-CustomTranscriptError, Write-ToLog, Start-MsiTranscript, Start-InstallMsi, Start-UninstallMsiGUID
